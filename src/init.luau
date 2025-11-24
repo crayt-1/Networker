@@ -34,7 +34,7 @@ function Networker.createService(name: string)
 	local service = {}
 
 	local meta = {}
-	meta.__newIndex = function(_, key: any, value: any)
+	meta.__newindex = function(_, key: any, value: any)
 		if typeof(value) ~= "function" then
 			return
 		end

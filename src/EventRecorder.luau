@@ -27,6 +27,10 @@ function EventRecorder.writeEvent(self: EventRecorder, serviceName: string, even
 		self.events[eventType][serviceName] = {}
 	end
 
+	if not self._eventTypes[serviceName] then
+		self._eventTypes[serviceName] = {}
+	end
+
 	self._eventTypes[serviceName][eventName] = eventType
 	self.events[eventType][serviceName][eventName] = callback
 end
