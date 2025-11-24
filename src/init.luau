@@ -77,6 +77,22 @@ function Networker.createService(name: string)
 		script.EventReceiver.BindableEvent.Event:Fire(serviceName, eventName, ...)
 	end
 
+	function service.client.fire(player: Player, eventName: string, ...: any?)
+		script.EventReceiver.RemoteEvent:FireClient(player, name, eventName, ...)
+	end
+
+	function service.client.fireAllClients(eventName: string, ...: any?)
+		script.EventReceiver.RemoteEvent:FireAllClients(name, eventName, ...)
+	end
+
+	function service.client.fireUnreliable(player: Player, eventName: string, ...: any?)
+		script.EventReceiver.UnreliableRemoteEvent:FireClient(player, name, eventName, ...)
+	end
+
+	function service.client.fireAllClientsUnreliable(eventName: string, ...: any?)
+		script.EventReceiver.UnreliableRemoteEvent:FireAllClients(name, eventName, ...)
+	end
+
 	return service
 end
 
