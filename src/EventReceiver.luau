@@ -9,12 +9,12 @@ return function()
 		events.RemoteEvent = script:FindFirstChild("RemoteEvent") or Instance.new("RemoteEvent")
 		events.RemoteEvent.Parent = script
 
-		events.BindableEvent = script:FindFirstChild("BindableEvent") or Instance.new("BindableEvent")
+		events.BindableEvent = script:FindFirstChild("Event") or Instance.new("BindableEvent")
 		events.BindableEvent.Parent = script
 	else
 		events.UnreliableRemoteEvent = script:WaitForChild("UnreliableRemoteEvent", math.huge)
 		events.RemoteEvent = script:WaitForChild("RemoteEvent", math.huge)
-		events.BindableEvent = script:WaitForChild("BindableEvent", math.huge)
+		events.BindableEvent = script:WaitForChild("Event", math.huge)
 	end
 
 	return events
