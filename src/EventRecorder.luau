@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local EventRecorder = {}
 EventRecorder.events = {
 	Any = {},
@@ -35,16 +36,24 @@ function EventRecorder.writeEvent(
 		or "Any"
 
 	if eventType ~= "Bindable" then
-		if not self.events[eventType][serviceName] then
-			self.events[eventType][serviceName] = {}
-		end
+		if RunService:IsServer() then
+			if not self.events[eventType][serviceName] then
+				self.events[eventType][serviceName] = {}
+			end
 
-		if not self._eventTypes[serviceName] then
-			self._eventTypes[serviceName] = {}
-		end
+			if not self._eventTypes[serviceName] then
+				self._eventTypes[serviceName] = {}
+			end
 
-		self._eventTypes[serviceName][eventName] = eventType
-		self.events[eventType][serviceName][eventName] = callback
+			self._eventTypes[serviceName][eventName] = eventType
+			self.events[eventType][serviceName][eventName] = callback
+		else
+			if not self.events[serviceName] then
+				self.events[serviceName] = {}
+			end
+
+			self.events[serviceName][eventName] = callback
+		end
 	else
 		script.Parent.EventReceiver.BindableEvent.Event:Connect(
 			function(_serviceName: string, _eventName: string, ...: any?)

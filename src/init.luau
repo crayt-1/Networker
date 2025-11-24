@@ -7,32 +7,42 @@ local Networker = {}
 Networker._events = EventReceiver()
 
 function Networker:_handleEvents()
-	self._events.RemoteEvent.OnServerEvent:Connect(
-		function(player: Player, serviceName: string, eventName: string, ...: any?)
-			print(player, serviceName, eventName, ...)
-			local eventType = EventRecorder:getEventType(serviceName, eventName)
+	if RunService:IsServer() then
+		self._events.RemoteEvent.OnServerEvent:Connect(
+			function(player: Player, serviceName: string, eventName: string, ...: any?)
+				print(player, serviceName, eventName, ...)
+				local eventType = EventRecorder:getEventType(serviceName, eventName)
 
-			if eventType ~= "Any" and eventType ~= "Default" then
-				warn(`event {eventName} can't be called as remoteEvent, it is {eventType}`)
-				return
+				if eventType ~= "Any" and eventType ~= "Default" then
+					warn(`event {eventName} can't be called as remoteEvent, it is {eventType}`)
+					return
+				end
+
+				EventRecorder.events[eventType][serviceName][eventName](player, ...)
 			end
+		)
+		self._events.UnreliableRemoteEvent.OnServerEvent:Connect(
+			function(player: Player, serviceName: string, eventName: string, ...: any?)
+				local eventType = EventRecorder:getEventType(serviceName, eventName)
 
-			EventRecorder.events[eventType][serviceName][eventName](player, ...)
-		end
-	)
+				if eventType ~= "Any" and eventType ~= "Unreliable" then
+					warn(`event {eventName} can't be called as unreliable remote event, it is {eventType}`)
+					return
+				end
 
-	self._events.UnreliableRemoteEvent.OnServerEvent:Connect(
-		function(player: Player, serviceName: string, eventName: string, ...: any?)
-			local eventType = EventRecorder:getEventType(serviceName, eventName)
-
-			if eventType ~= "Any" and eventType ~= "Unreliable" then
-				warn(`event {eventName} can't be called as unreliable remote event, it is {eventType}`)
-				return
+				EventRecorder.events[eventType][serviceName][eventName](player, ...)
 			end
-
-			EventRecorder.events[eventType][serviceName][eventName](player, ...)
-		end
-	)
+		)
+	else
+		self._events.RemoteEvent.OnClientEvent:Connect(function(serviceName: string, eventName: string, ...: any?)
+			EventRecorder.events[serviceName][eventName](...)
+		end)
+		self._events.UnreliableRemoteEvent.OnClientEvent:Connect(
+			function(serviceName: string, eventName: string, ...: any?)
+				EventRecorder.events[serviceName][eventName](...)
+			end
+		)
+	end
 
 	self._events.BindableEvent.Event:Connect(function(serviceName: string, eventName: string, ...: any?)
 		EventRecorder.events.Bindable[serviceName][eventName](...)
@@ -94,7 +104,17 @@ function Networker.createController(name: string)
 		EventRecorder:writeEvent(name, key, value)
 	end
 
+	local client = {}
+	client.__newindex = function(_, key: any, value: any)
+		if typeof(value) ~= "function" then
+			print("not a function")
+			return
+		end
+		EventRecorder:writeEvent(name, key, value)
+	end
+
 	controller.shared = { Events = setmetatable({}, shared) }
+	controller.client = setmetatable({}, client)
 
 	function controller.shared.fire(serviceName: string, eventName: string, ...: any?)
 		script.EventReceiver.BindableEvent.Event:Fire(serviceName, eventName, ...)
@@ -121,9 +141,7 @@ function CharacterController:init()
 end
 --]]
 
-if RunService:IsServer() then
-	Networker:_handleEvents()
-end
+Networker:_handleEvents()
 
 return {
 	server = Networker.createService,
