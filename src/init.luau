@@ -85,6 +85,21 @@ function Networker.createController(name: string)
 
 	controller.server = server
 
+	local shared = {}
+	shared.__newindex = function(_, key: any, value: any)
+		if typeof(value) ~= "function" then
+			print("not a function")
+			return
+		end
+		EventRecorder:writeEvent(name, key, value)
+	end
+
+	controller.shared = { Events = setmetatable({}, shared) }
+
+	function controller.shared.fire(serviceName: string, eventName: string, ...: any?)
+		script.EventReceiver.BindableEvent.Event:Fire(serviceName, eventName, ...)
+	end
+
 	return controller
 end
 
